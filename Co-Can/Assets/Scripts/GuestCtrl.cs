@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 using System.Collections.Generic;
+using UnityEngine.UI;
 
 public class GuestCtrl : GameSystem
 {
@@ -38,6 +39,14 @@ public class GuestCtrl : GameSystem
 
     List<GuestBehaviour> guestList = new();
 
+    [Header("UI")]
+    [SerializeField] private Image guestUIImage;
+    [SerializeField] private Sprite[] guestSprites;
+
+    [Header("チョビンボタンUI")]
+    [SerializeField] private Image chobinUIImage;
+    [SerializeField] private Sprite[] chobinSprites;
+
     private bool isActive = false;
     private float spawnTimer = 0f;
     private bool hasGuestWaitingOrder = false;
@@ -56,7 +65,6 @@ public class GuestCtrl : GameSystem
     public int WaitingGuestNum => guestOrderCounter - guestExitCounter;
     public bool HasGuestWaitingOrder => hasGuestWaitingOrder;
 
-    // Update is called once per frame
     void Update()
     {
         if (isActive)
@@ -128,6 +136,8 @@ public class GuestCtrl : GameSystem
         guestHasCookedCounter = 0;
         hasGuestWaitingOrder = false;
 
+        UpdateWaitingOrderGuestImage();
+
         Debug.Log("GuestCtrlの初期化が完了しました。");
     }
 
@@ -147,6 +157,7 @@ public class GuestCtrl : GameSystem
     {
         int prefabIndex = Random.Range(0, guestPrefabs.Length);
         GuestBehaviour newGuest = Instantiate(guestPrefabs[prefabIndex], spawnSpot.position, Quaternion.identity);
+        newGuest.PrefabIndex = prefabIndex; // 追加
         guestList.Add(newGuest);
         newGuest.SetSpeed(speed);
         newGuest.GuestEventInstance.RemoveAllListeners();
@@ -158,11 +169,10 @@ public class GuestCtrl : GameSystem
 
         guestComeCounter++;
         spawnTimer = Random.Range(SpawnIntervalMin, SpawnIntervalMax);
+
+        UpdateWaitingOrderGuestImage(); // 追加
     }
 
-    /// <summary>
-    /// 注文を受け付けた時に呼び出されるメソッド
-    /// </summary>
     public void ReceiveOrder()
     {
         guestList[guestOrderCounter].SetState(GuestBehaviour.Status.WaitingDish);
@@ -180,6 +190,8 @@ public class GuestCtrl : GameSystem
         hasGuestWaitingOrder = false;
         guestOrderCounter++;
         guestHasCookedCounter++;
+
+        UpdateWaitingOrderGuestImage(); // 追加
     }
 
     public void ServeDish()
@@ -192,6 +204,8 @@ public class GuestCtrl : GameSystem
             guestList[i].SetDestination(waitingServeSpot.position + waitingServeOffset * differenceCount);
         }
         guestExitCounter++;
+
+        UpdateWaitingOrderGuestImage(); // 追加
     }
 
     public GuestBehaviour GetServedGuest()
@@ -208,7 +222,6 @@ public class GuestCtrl : GameSystem
     {
         guestHasCookedCounter--;
     }
-
 
     private void GuestOnCounter(int guestId)
     {
@@ -258,4 +271,40 @@ public class GuestCtrl : GameSystem
                 break;
         }
     }
+
+    /// <summary>
+    /// 一番先に来て「注文待ち(WaitingOrder)」の客の画像をUIに表示
+    /// </summary>
+    private void UpdateWaitingOrderGuestImage()
+    {
+        if (guestUIImage == null || guestSprites == null)
+            return;
+
+        // guestListの中で、状態がWaitingOrderの最も前の客を探す
+        foreach (var guest in guestList)
+        {
+            if (guest != null && guest.CurrentStatus == GuestBehaviour.Status.WaitingOrder)
+            {
+                int prefabIndex = guest.PrefabIndex;
+                if (prefabIndex >= 0 && prefabIndex < guestSprites.Length)
+                {
+                    guestUIImage.sprite = guestSprites[prefabIndex];
+                }
+                return;
+            }
+        }
+        // 見つからなければ画像を消す
+        guestUIImage.sprite = null;
+    }
+
+    public void OnChobinButtonClicked(int index)
+    {
+        if (chobinUIImage == null || chobinSprites == null) return;
+        if (index >= 0 && index < chobinSprites.Length)
+        {
+            chobinUIImage.sprite = chobinSprites[index];
+        }
+    }
+
+
 }

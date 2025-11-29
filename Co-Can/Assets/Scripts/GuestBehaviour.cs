@@ -5,6 +5,7 @@ using TMPro;
 
 public class GuestBehaviour : MonoBehaviour
 {
+    public int PrefabIndex { get; set; }
     public enum Status
     {
         None = -1, // 未設定
