@@ -46,6 +46,26 @@ public class CookingCommandBehaviour : GameSystem
     [Tooltip("エディタ上で（再生中以外で）指示UIを常に表示しておくか")]
     [SerializeField] private bool commandCanvasIsActiveInEditor = false;
 
+    // =================================================================================
+    // 【追加】新規UI要素の設定 (名前と位置)
+    // =================================================================================
+    [Header("追加UI要素設定")]
+    [Tooltip("プレハブ内の追加画像1のオブジェクト名")]
+    [SerializeField] private string extraImage1Name = "ExtraImage1";
+    [Tooltip("追加画像1の相対位置")]
+    [SerializeField] private Vector2 extraImage1Position;
+
+    [Tooltip("プレハブ内の追加画像2のオブジェクト名")]
+    [SerializeField] private string extraImage2Name = "ExtraImage2";
+    [Tooltip("追加画像2の相対位置")]
+    [SerializeField] private Vector2 extraImage2Position;
+
+    [Tooltip("プレハブ内の追加テキストのオブジェクト名")]
+    [SerializeField] private string extraTextName = "ExtraText";
+    [Tooltip("追加テキストの相対位置")]
+    [SerializeField] private Vector2 extraTextPosition;
+    // =================================================================================
+
     [Header("UIレイアウト設定")]
     [Tooltip("表示する指示の行数")]
     [SerializeField] private int commandCount = 3;
@@ -94,11 +114,22 @@ public class CookingCommandBehaviour : GameSystem
     private TextMeshProUGUI[] materialUITexts;
     private Button[] materialLeftButtons;
     private Button[] materialRightButtons;
+
+    // 【追加】材料UI側の追加要素参照用配列
+    private Image[] materialExtraImages1;
+    private Image[] materialExtraImages2;
+    private TextMeshProUGUI[] materialExtraTexts;
+
     private RectTransform[] actionUIRects;
     private Image[] actionUIImages;
     private TextMeshProUGUI[] actionUITexts;
     private Button[] actionLeftButtons;
     private Button[] actionRightButtons;
+
+    // 【追加】アクションUI側の追加要素参照用配列
+    private Image[] actionExtraImages1;
+    private Image[] actionExtraImages2;
+    private TextMeshProUGUI[] actionExtraTexts;
 
     private SelectCommandEvent previousMaterialEvent = new();
     private SelectCommandEvent nextMaterialEvent = new();
@@ -281,6 +312,14 @@ public class CookingCommandBehaviour : GameSystem
         actionLeftButtons = new Button[commandCount];
         actionRightButtons = new Button[commandCount];
 
+        // 【追加】追加要素用配列の初期化
+        materialExtraImages1 = new Image[commandCount];
+        materialExtraImages2 = new Image[commandCount];
+        materialExtraTexts = new TextMeshProUGUI[commandCount];
+        actionExtraImages1 = new Image[commandCount];
+        actionExtraImages2 = new Image[commandCount];
+        actionExtraTexts = new TextMeshProUGUI[commandCount];
+
         // 既存のUIオブジェクトを削除
         while (commandUIParent.transform.childCount > 0)
         {
@@ -305,56 +344,15 @@ public class CookingCommandBehaviour : GameSystem
             materialUIRects[i] = materialUIObject.GetComponent<RectTransform>();
             actionUIRects[i] = actionUIObject.GetComponent<RectTransform>();
 
-            foreach (Transform t in materialUIObject.transform)
-            {
-                if (t.TryGetComponent<RectTransform>(out var rectTransform))
-                {
-                    if (t.GetComponent<Image>() != null && t.GetComponent<Button>() == null)
-                    {
-                        materialUIImages[i] = t.GetComponent<Image>();
-                    }
-                    else if (t.GetComponent<TextMeshProUGUI>() != null)
-                    {
-                        materialUITexts[i] = t.GetComponent<TextMeshProUGUI>();
-                    }
-                    else if (t.GetComponent<Button>() != null)
-                    {
-                        if (rectTransform.anchoredPosition.x < 0)
-                        {
-                            materialLeftButtons[i] = t.GetComponent<Button>();
-                        }
-                        else
-                        {
-                            materialRightButtons[i] = t.GetComponent<Button>();
-                        }
-                    }
-                }
-            }
-            foreach (Transform t in actionUIObject.transform)
-            {
-                if (t.TryGetComponent<RectTransform>(out var rectTransform))
-                {
-                    if (t.GetComponent<Image>() != null && t.GetComponent<Button>() == null)
-                    {
-                        actionUIImages[i] = t.GetComponent<Image>();
-                    }
-                    else if (t.GetComponent<TextMeshProUGUI>() != null)
-                    {
-                        actionUITexts[i] = t.GetComponent<TextMeshProUGUI>();
-                    }
-                    else if (t.GetComponent<Button>() != null)
-                    {
-                        if (rectTransform.anchoredPosition.x < 0)
-                        {
-                            actionLeftButtons[i] = t.GetComponent<Button>();
-                        }
-                        else
-                        {
-                            actionRightButtons[i] = t.GetComponent<Button>();
-                        }
-                    }
-                }
-            }
+            // 材料UIの子要素取得と振り分け
+            ParseUIChildren(materialUIObject.transform, i,
+                ref materialUIImages, ref materialUITexts, ref materialLeftButtons, ref materialRightButtons,
+                ref materialExtraImages1, ref materialExtraImages2, ref materialExtraTexts);
+
+            // 調理法UIの子要素取得と振り分け
+            ParseUIChildren(actionUIObject.transform, i,
+                ref actionUIImages, ref actionUITexts, ref actionLeftButtons, ref actionRightButtons,
+                ref actionExtraImages1, ref actionExtraImages2, ref actionExtraTexts);
         }
         InitUI();
 #if UNITY_EDITOR
@@ -363,6 +361,56 @@ public class CookingCommandBehaviour : GameSystem
             EditorApplication.delayCall -= InitUIParent; // 重複して実行されるのを防ぐために削除
         }
 #endif
+    }
+
+    // 【追加】子要素を名前判定して適切な配列に格納するヘルパーメソッド
+    private void ParseUIChildren(Transform parent, int index,
+        ref Image[] mainImages, ref TextMeshProUGUI[] mainTexts, ref Button[] leftButtons, ref Button[] rightButtons,
+        ref Image[] extraImg1, ref Image[] extraImg2, ref TextMeshProUGUI[] extraTxt)
+    {
+        foreach (Transform t in parent)
+        {
+            // まず名前で追加要素かどうかを判定
+            if (t.name == extraImage1Name && t.GetComponent<Image>())
+            {
+                extraImg1[index] = t.GetComponent<Image>();
+                continue;
+            }
+            if (t.name == extraImage2Name && t.GetComponent<Image>())
+            {
+                extraImg2[index] = t.GetComponent<Image>();
+                continue;
+            }
+            if (t.name == extraTextName && t.GetComponent<TextMeshProUGUI>())
+            {
+                extraTxt[index] = t.GetComponent<TextMeshProUGUI>();
+                continue;
+            }
+
+            // 既存の自動判定ロジック
+            if (t.TryGetComponent<RectTransform>(out var rectTransform))
+            {
+                if (t.GetComponent<Image>() != null && t.GetComponent<Button>() == null)
+                {
+                    mainImages[index] = t.GetComponent<Image>();
+                }
+                else if (t.GetComponent<TextMeshProUGUI>() != null)
+                {
+                    mainTexts[index] = t.GetComponent<TextMeshProUGUI>();
+                }
+                else if (t.GetComponent<Button>() != null)
+                {
+                    if (rectTransform.anchoredPosition.x < 0)
+                    {
+                        leftButtons[index] = t.GetComponent<Button>();
+                    }
+                    else
+                    {
+                        rightButtons[index] = t.GetComponent<Button>();
+                    }
+                }
+            }
+        }
     }
 
     private void InitUI()
@@ -385,7 +433,12 @@ public class CookingCommandBehaviour : GameSystem
             return;
         }
 #endif
-        imageSize = SpriteSize(materialUIImages[0].sprite, imageSize, UIImageSizeOption);
+        // 配列の安全チェック
+        if (materialUIImages != null && materialUIImages.Length > 0 && materialUIImages[0] != null)
+        {
+            imageSize = SpriteSize(materialUIImages[0].sprite, imageSize, UIImageSizeOption);
+        }
+
         //ボタンのサイズオプションに応じてサイズを補正
         ButtonSize = SpriteSize(leftButtonSprite, ButtonSize, buttonSizeOption);
 
@@ -402,70 +455,119 @@ public class CookingCommandBehaviour : GameSystem
 
             {
                 // 画像のスタイル設定
-                materialUIImages[i].rectTransform.anchoredPosition = commandImagePosition;
-                materialUIImages[i].rectTransform.sizeDelta = imageSize;
-                actionUIImages[i].rectTransform.anchoredPosition = commandImagePosition;
-                actionUIImages[i].rectTransform.sizeDelta = imageSize;
+                if (materialUIImages[i] != null)
+                {
+                    materialUIImages[i].rectTransform.anchoredPosition = commandImagePosition;
+                    materialUIImages[i].rectTransform.sizeDelta = imageSize;
+                    materialUIImages[i].gameObject.SetActive(useImageUI);
+                }
+                if (actionUIImages[i] != null)
+                {
+                    actionUIImages[i].rectTransform.anchoredPosition = commandImagePosition;
+                    actionUIImages[i].rectTransform.sizeDelta = imageSize;
+                    actionUIImages[i].gameObject.SetActive(useImageUI);
+                }
             }
             {
                 // テキストのスタイル設定
-                materialUITexts[i].rectTransform.anchoredPosition = commandTextPosition;
-                materialUITexts[i].rectTransform.sizeDelta = textSize;
-                materialUITexts[i].font = fontAsset;
-                materialUITexts[i].color = fontColor;
-                materialUITexts[i].fontSize = fontSize;
-                actionUITexts[i].rectTransform.anchoredPosition = commandTextPosition;
-                actionUITexts[i].rectTransform.sizeDelta = textSize;
-                actionUITexts[i].font = fontAsset;
-                actionUITexts[i].color = fontColor;
-                actionUITexts[i].fontSize = fontSize;
+                if (materialUITexts[i] != null)
+                {
+                    materialUITexts[i].rectTransform.anchoredPosition = commandTextPosition;
+                    materialUITexts[i].rectTransform.sizeDelta = textSize;
+                    materialUITexts[i].font = fontAsset;
+                    materialUITexts[i].color = fontColor;
+                    materialUITexts[i].fontSize = fontSize;
+                    materialUITexts[i].gameObject.SetActive(!useImageUI);
+                }
+                if (actionUITexts[i] != null)
+                {
+                    actionUITexts[i].rectTransform.anchoredPosition = commandTextPosition;
+                    actionUITexts[i].rectTransform.sizeDelta = textSize;
+                    actionUITexts[i].font = fontAsset;
+                    actionUITexts[i].color = fontColor;
+                    actionUITexts[i].fontSize = fontSize;
+                    actionUITexts[i].gameObject.SetActive(!useImageUI);
+                }
             }
+
+            // 【追加】追加要素の位置適用
+            ApplyExtraElementStyle(materialExtraImages1, i, extraImage1Position);
+            ApplyExtraElementStyle(materialExtraImages2, i, extraImage2Position);
+            ApplyExtraElementStyle(materialExtraTexts, i, extraTextPosition);
+            ApplyExtraElementStyle(actionExtraImages1, i, extraImage1Position);
+            ApplyExtraElementStyle(actionExtraImages2, i, extraImage2Position);
+            ApplyExtraElementStyle(actionExtraTexts, i, extraTextPosition);
+
             // ボタンのスタイル設定
-            materialLeftButton.GetComponent<RectTransform>().anchoredPosition = commandLeftButtonPosition;
-            materialLeftButton.GetComponent<RectTransform>().sizeDelta = ButtonSize;
-            Image materialLeftButtonImage = materialLeftButton.GetComponent<Image>();
-            if (materialLeftButtonImage != null && leftButtonSprite != null)
+            if (materialLeftButton != null)
             {
-                materialLeftButtonImage.sprite = leftButtonSprite;
-            }
-            materialRightButton.GetComponent<RectTransform>().anchoredPosition = commandRightButtonPosition;
-            materialRightButton.GetComponent<RectTransform>().sizeDelta = ButtonSize;
-            Image materialRightButtonImage = materialRightButton.GetComponent<Image>();
-            if (materialRightButtonImage != null && rightButtonSprite != null)
-            {
-                materialRightButtonImage.sprite = rightButtonSprite;
-            }
-            actionLeftButton.GetComponent<RectTransform>().anchoredPosition = commandLeftButtonPosition;
-            actionLeftButton.GetComponent<RectTransform>().sizeDelta = ButtonSize;
-            Image actionLeftButtonImage = actionLeftButton.GetComponent<Image>();
-            if (actionLeftButtonImage != null && leftButtonSprite != null)
-            {
-                actionLeftButtonImage.sprite = leftButtonSprite;
-            }
-            actionRightButton.GetComponent<RectTransform>().anchoredPosition = commandRightButtonPosition;
-            actionRightButton.GetComponent<RectTransform>().sizeDelta = ButtonSize;
-            Image actionRightButtonImage = actionRightButton.GetComponent<Image>();
-            if (actionRightButtonImage != null && rightButtonSprite != null)
-            {
-                actionRightButtonImage.sprite = rightButtonSprite;
+                materialLeftButton.GetComponent<RectTransform>().anchoredPosition = commandLeftButtonPosition;
+                materialLeftButton.GetComponent<RectTransform>().sizeDelta = ButtonSize;
+                Image materialLeftButtonImage = materialLeftButton.GetComponent<Image>();
+                if (materialLeftButtonImage != null && leftButtonSprite != null)
+                {
+                    materialLeftButtonImage.sprite = leftButtonSprite;
+                }
+                // ボタンのクリックイベントを設定
+                int commandIndex = i; // ローカル変数を使用してクロージャーの問題を回避
+                materialLeftButton.onClick.RemoveAllListeners();
+                materialLeftButton.onClick.AddListener(() => previousMaterialEvent.Invoke(currentChobinUIIndex, commandIndex));
             }
 
-            materialUITexts[i].gameObject.SetActive(!useImageUI);
-            actionUITexts[i].gameObject.SetActive(!useImageUI);
-            materialUIImages[i].gameObject.SetActive(useImageUI);
-            actionUIImages[i].gameObject.SetActive(useImageUI);
+            if (materialRightButton != null)
+            {
+                materialRightButton.GetComponent<RectTransform>().anchoredPosition = commandRightButtonPosition;
+                materialRightButton.GetComponent<RectTransform>().sizeDelta = ButtonSize;
+                Image materialRightButtonImage = materialRightButton.GetComponent<Image>();
+                if (materialRightButtonImage != null && rightButtonSprite != null)
+                {
+                    materialRightButtonImage.sprite = rightButtonSprite;
+                }
+                int commandIndex = i;
+                materialRightButton.onClick.RemoveAllListeners();
+                materialRightButton.onClick.AddListener(() => nextMaterialEvent.Invoke(currentChobinUIIndex, commandIndex));
+            }
 
-            // ボタンのクリックイベントを設定
-            int commandIndex = i; // ローカル変数を使用してクロージャーの問題を回避
-            materialLeftButton.onClick.RemoveAllListeners();
-            materialRightButton.onClick.RemoveAllListeners();
-            actionLeftButton.onClick.RemoveAllListeners();
-            actionRightButton.onClick.RemoveAllListeners();
+            if (actionLeftButton != null)
+            {
+                actionLeftButton.GetComponent<RectTransform>().anchoredPosition = commandLeftButtonPosition;
+                actionLeftButton.GetComponent<RectTransform>().sizeDelta = ButtonSize;
+                Image actionLeftButtonImage = actionLeftButton.GetComponent<Image>();
+                if (actionLeftButtonImage != null && leftButtonSprite != null)
+                {
+                    actionLeftButtonImage.sprite = leftButtonSprite;
+                }
+                int commandIndex = i;
+                actionLeftButton.onClick.RemoveAllListeners();
+                actionLeftButton.onClick.AddListener(() => previousActionEvent.Invoke(currentChobinUIIndex, commandIndex));
+            }
 
-            materialLeftButton.onClick.AddListener(() => previousMaterialEvent.Invoke(currentChobinUIIndex, commandIndex));
-            materialRightButton.onClick.AddListener(() => nextMaterialEvent.Invoke(currentChobinUIIndex, commandIndex));
-            actionLeftButton.onClick.AddListener(() => previousActionEvent.Invoke(currentChobinUIIndex, commandIndex));
-            actionRightButton.onClick.AddListener(() => nextActionEvent.Invoke(currentChobinUIIndex, commandIndex));
+            if (actionRightButton != null)
+            {
+                actionRightButton.GetComponent<RectTransform>().anchoredPosition = commandRightButtonPosition;
+                actionRightButton.GetComponent<RectTransform>().sizeDelta = ButtonSize;
+                Image actionRightButtonImage = actionRightButton.GetComponent<Image>();
+                if (actionRightButtonImage != null && rightButtonSprite != null)
+                {
+                    actionRightButtonImage.sprite = rightButtonSprite;
+                }
+                int commandIndex = i;
+                actionRightButton.onClick.RemoveAllListeners();
+                actionRightButton.onClick.AddListener(() => nextActionEvent.Invoke(currentChobinUIIndex, commandIndex));
+            }
+        }
+    }
+
+    // 【追加】追加要素の位置を適用する汎用メソッド
+    private void ApplyExtraElementStyle<T>(T[] array, int index, Vector2 position) where T : UnityEngine.EventSystems.UIBehaviour
+    {
+        if (array != null && index >= 0 && index < array.Length && array[index] != null)
+        {
+            RectTransform rt = array[index].GetComponent<RectTransform>();
+            if (rt != null)
+            {
+                rt.anchoredPosition = position;
+            }
         }
     }
 
@@ -499,28 +601,58 @@ public class CookingCommandBehaviour : GameSystem
         }
     }
 
+    // 【追加】追加要素の更新メソッド群
+    public void UpdateExtraImage1(int commandIndex, bool isMaterial, Sprite sprite)
+    {
+        var targetArray = isMaterial ? materialExtraImages1 : actionExtraImages1;
+        if (commandIndex >= 0 && commandIndex < targetArray.Length && targetArray[commandIndex] != null)
+        {
+            targetArray[commandIndex].sprite = sprite;
+            targetArray[commandIndex].gameObject.SetActive(sprite != null);
+        }
+    }
+
+    public void UpdateExtraImage2(int commandIndex, bool isMaterial, Sprite sprite)
+    {
+        var targetArray = isMaterial ? materialExtraImages2 : actionExtraImages2;
+        if (commandIndex >= 0 && commandIndex < targetArray.Length && targetArray[commandIndex] != null)
+        {
+            targetArray[commandIndex].sprite = sprite;
+            targetArray[commandIndex].gameObject.SetActive(sprite != null);
+        }
+    }
+
+    public void UpdateExtraText(int commandIndex, bool isMaterial, string text)
+    {
+        var targetArray = isMaterial ? materialExtraTexts : actionExtraTexts;
+        if (commandIndex >= 0 && commandIndex < targetArray.Length && targetArray[commandIndex] != null)
+        {
+            targetArray[commandIndex].text = text;
+        }
+    }
+
     private void UpdateMaterialImage(int commandIndex, Sprite sprite)
     {
-        if (commandIndex < 0 || commandIndex >= materialUIImages.Length) return;
-        materialUIImages[commandIndex].sprite = sprite;
+        if (materialUIImages == null || commandIndex < 0 || commandIndex >= materialUIImages.Length) return;
+        if (materialUIImages[commandIndex] != null) materialUIImages[commandIndex].sprite = sprite;
     }
 
     private void UpdateActionImage(int commandIndex, Sprite sprite)
     {
-        if (commandIndex < 0 || commandIndex >= actionUIImages.Length) return;
-        actionUIImages[commandIndex].sprite = sprite;
+        if (actionUIImages == null || commandIndex < 0 || commandIndex >= actionUIImages.Length) return;
+        if (actionUIImages[commandIndex] != null) actionUIImages[commandIndex].sprite = sprite;
     }
 
     private void UpdateMaterialText(int commandIndex, string name)
     {
-        if (commandIndex < 0 || commandIndex >= materialUITexts.Length) return;
-        materialUITexts[commandIndex].text = name;
+        if (materialUITexts == null || commandIndex < 0 || commandIndex >= materialUITexts.Length) return;
+        if (materialUITexts[commandIndex] != null) materialUITexts[commandIndex].text = name;
     }
 
     private void UpdateActionText(int commandIndex, string name)
     {
-        if (commandIndex < 0 || commandIndex >= actionUITexts.Length) return;
-        actionUITexts[commandIndex].text = name;
+        if (actionUITexts == null || commandIndex < 0 || commandIndex >= actionUITexts.Length) return;
+        if (actionUITexts[commandIndex] != null) actionUITexts[commandIndex].text = name;
     }
 
     private Vector2 SpriteSize(Sprite sprite, Vector2 targetSize, SpriteSizeOption spriteSizeOption)
