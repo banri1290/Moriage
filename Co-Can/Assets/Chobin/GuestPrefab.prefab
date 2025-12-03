@@ -62,20 +62,15 @@ MonoBehaviour:
   EmotionIngredients:
   - "\u6750\u65996"
   reactionText: {fileID: 7574645924243609843}
-  orderEmojis:
-  - "\u25A1"
-  - "\u25A1"
-  - "\u25A1"
-  - "\u25A1"
-  - "\u25A1"
+  orderTexts:
+  - "\u30B8\u30E3\u30AC\u30A4\u30E2\u306E\u6599\u7406\u304C\u98DF\u3079\u305F\u3044"
+  - "\u304C\u3063\u3064\u308A\u8089\u3067\u884C\u304D\u305F\u3044"
+  - "\u9B5A\u8C9D\u3092\u716E\u8FBC\u3093\u3060\u3088\u3046\u306A\u3082\u306E"
+  - "\u30B8\u30E3\u30AC\u30A4\u30E2\u306E\u6599\u7406\u304C\u98DF\u3079\u305F\u3044"
+  - "\u304C\u3063\u3064\u308A\u8089\u3067\u884C\u304D\u305F\u3044"
   OnCookingFinished:
     m_PersistentCalls:
       m_Calls: []
-  orderEmoji:
-  - "\U0001F605"
-  - "\U0001F600"
-  - "\U0001F604"
-  - "\U0001F601"
 --- !u!54 &938727440963644389
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -414,14 +409,14 @@ RectTransform:
   m_GameObject: {fileID: 5983825542034469149}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.43432, y: 0.43432, z: 0.43432}
+  m_LocalScale: {x: 0.09064285, y: 0.09064285, z: 0.09064285}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 5614172797615950929}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -960.19, y: -526.29}
+  m_AnchoredPosition: {x: -960.19, y: -531.49005}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3370300458866945525
@@ -454,8 +449,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: fc88aa3a0d47aa94f9f393b14715914f, type: 2}
-  m_sharedMaterial: {fileID: -6124771756258334433, guid: fc88aa3a0d47aa94f9f393b14715914f, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 7103fafc825d6c4418fc0545dc4035ae, type: 2}
+  m_sharedMaterial: {fileID: 4001982018561502232, guid: 7103fafc825d6c4418fc0545dc4035ae, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -479,8 +474,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36
-  m_fontSizeBase: 36
+  m_fontSize: 10.2
+  m_fontSizeBase: 10.2
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18

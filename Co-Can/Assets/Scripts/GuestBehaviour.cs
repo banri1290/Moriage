@@ -43,10 +43,10 @@ public List<string> EmotionIngredients = new List<string>();  // 感情対応食
     public GuestEvent GuestEventInstance => guestEvent;
     public float WaitingTimer => waitTimer;
 
-   [Header("🟡 絵文字関連")]
+   [Header("🟡 テキスト表示関連")]
     [SerializeField] private TextMeshProUGUI reactionText;
-    [SerializeField] private string[] orderEmojis = { "😅", "🍣", "🍜", "🍕", "🥗" };
-
+    [SerializeField] private string[]  orderTexts = { "寿司", "ラーメン", "ピザ", "サラダ", "ステーキ"};
+  private string selectedOrderText;
     public UnityEvent OnCookingFinished;
     // Start is called before the first frame update
     void Start()
@@ -73,14 +73,14 @@ public List<string> EmotionIngredients = new List<string>();  // 感情対応食
            hasMovedFlag = false; 
         SetState(Status.Entering);
           // 🍽️ 客IDに応じて絵文字を決定
-      if (orderEmojis != null && orderEmojis.Length > 0)
+      if (orderTexts != null && orderTexts.Length > 0)
         {
-            int index = guestId % orderEmojis.Length;
-            selectedOrderEmoji = orderEmojis[index];
+            int index = guestId %  orderTexts.Length;
+            selectedOrderText =  orderTexts[index];
         }
         else
         {
-            selectedOrderEmoji = "😅"; // デフォルト
+            selectedOrderText = "料理"; // デフォルト
         }
     }
 
@@ -180,7 +180,7 @@ public void StopWaiting()
                 // 入店中の処理
                 break;
             case Status.WaitingOrder:
-            ShowOrderEmoji(); // 🍔 注文絵文字を出す
+            ShowOrderText(); // 🍔 注文絵文字を出す
                 break;
             case Status.Ordering:
                 break;
@@ -198,7 +198,7 @@ public void StopWaiting()
     public void ShowReaction(int score)
      {
         if (reactionText == null) return;
-        string emoji = GetEmoji(score);
+        string emoji = GetReactionText(score);
         reactionText.text = emoji;
         reactionText.gameObject.SetActive(true);
 
@@ -212,22 +212,21 @@ public void StopWaiting()
             reactionText.gameObject.SetActive(false);
     }
 
-    private string GetEmoji(int score)
+    private string GetReactionText(int score)
     {
-        if (score <= 5) return "😅";
-        if (score <= 10) return "😀";
-        if (score <= 20) return "😄";
-        if (score <= 25) return "😁";
-        return "😆";
+        if (score <= 5) return "最悪";
+        if (score <= 10) return "まあまあ";
+        if (score <= 20) return "おいしい";
+        if (score <= 25) return "最高";
+        return "感動した";
     }
     // ▲▲ ここまで追記 ▲▲
     // 🍽️ ====== 注文絵文字管理 ======
-[SerializeField] private string[] orderEmoji = { "😅", "😀", "😄", "😁" };  // デフォルト注文絵文字
 private string selectedOrderEmoji; // この客が使う絵文字
 /// <summary>
 /// 注文開始時に頭上に絵文字を表示
 /// </summary>
-public void ShowOrderEmoji(string emoji = null)
+public void ShowOrderText(string emoji = null)
 {
     if (reactionText == null)
     {
@@ -237,7 +236,7 @@ public void ShowOrderEmoji(string emoji = null)
    CancelInvoke(nameof(HideReaction)); // 🔸 以前の非表示予約をキャンセル
     reactionText.gameObject.SetActive(true);
       // emoji 引数があればそれを使い、なければ selectedOrderEmoji を使う
-    reactionText.text = emoji ?? selectedOrderEmoji;
+    reactionText.text = selectedOrderText; // ← これに変更！
 }
 
 /// <summary>
@@ -247,8 +246,7 @@ public void ShowReactionAndHideOrder(int score)
 {
     if (reactionText == null) return;
 
-    string emoji = GetEmoji(score);
-    reactionText.text = emoji;
+    reactionText.text = GetReactionText(score);
     reactionText.gameObject.SetActive(true);
 
     // 2秒後に非表示

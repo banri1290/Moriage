@@ -423,26 +423,26 @@ public class GameManager : MonoBehaviour
     {
         int totalSum = servedCount + totalScore;
 
-        string resultText = $"Cook：{servedCount}\n" +
-                            $"Score：{totalScore}\n" +
-                            $"Result：{totalSum}";
+        string resultText = $"提供数：{servedCount}\n" +
+                            $"スコア：{totalScore}\n" +
+                            $"結果：{totalSum}";
         // 🎯 テキストをアクティブ化して内容を設定
         if (serveCountText != null)
         {
             serveCountText.gameObject.SetActive(true);
-            serveCountText.text = $"Cook：{servedCount}";
+            serveCountText.text = $"提供数：{servedCount}";
         }
 
         if (totalScoreText != null)
         {
             totalScoreText.gameObject.SetActive(true);
-            totalScoreText.text = $"Score：{totalScore}";
+            totalScoreText.text = $"スコア：{totalScore}";
         }
 
         if (totalSumText != null)
         {
             totalSumText.gameObject.SetActive(true);
-            totalSumText.text = $"Result：{totalSum}";
+            totalSumText.text = $"結果：{totalSum}";
         }
         Debug.Log($"🏁 全員処理完了！{resultText}");
     }
