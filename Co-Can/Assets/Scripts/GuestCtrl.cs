@@ -192,6 +192,7 @@ public class GuestCtrl : GameSystem
         guestHasCookedCounter++;
 
         UpdateWaitingOrderGuestImage(); // 追加
+           UpdateOrderTextDisplay(); // ← ここ追加
     }
 
     public void ServeDish()
@@ -206,6 +207,7 @@ public class GuestCtrl : GameSystem
         guestExitCounter++;
 
         UpdateWaitingOrderGuestImage(); // 追加
+        UpdateOrderTextDisplay(); // ← 追加
     }
 
     public GuestBehaviour GetServedGuest()
@@ -270,6 +272,7 @@ public class GuestCtrl : GameSystem
             default:
                 break;
         }
+         UpdateOrderTextDisplay(); // ← 追加！（常に最新の表示にする）
     }
 
     /// <summary>
@@ -305,6 +308,23 @@ public class GuestCtrl : GameSystem
             chobinUIImage.sprite = chobinSprites[index];
         }
     }
+/// <summary>
+/// 先頭の客だけ注文テキストを表示し、後続は非表示にする
+/// </summary>
+private void UpdateOrderTextDisplay()
+{
+    for (int i = 0; i < guestList.Count; i++)
+    {
+        if (guestList[i] == null) continue;
 
-
+        if (i == guestOrderCounter) // 注文対象の客（最前）
+        {
+            guestList[i].ShowOrderText();
+        }
+        else
+        {
+            guestList[i].HideOrderText();
+        }
+    }
+}
 }

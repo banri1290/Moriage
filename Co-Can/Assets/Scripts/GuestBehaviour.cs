@@ -170,6 +170,12 @@ public void StopWaiting()
            OnCookingFinished?.Invoke(); // 完了イベント
         }
     }
+
+    public void HideOrderText()
+{
+    if (reactionText != null)
+        reactionText.gameObject.SetActive(false);
+}
     // 🍳 ====== ここまで追加 ======
     public void SetState(Status _status)
     {
