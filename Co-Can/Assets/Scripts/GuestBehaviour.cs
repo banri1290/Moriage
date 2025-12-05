@@ -53,6 +53,11 @@ public class GuestBehaviour : MonoBehaviour
     public string OrderText => selectedOrderText;
     public UnityEvent OnCookingFinished => onCookingFinished;
 
+
+[Header("🟡 吹き出し")]
+[SerializeField] private GameObject orderBubbleImage;
+[SerializeField] private GameObject reactionBubbleImage;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -158,11 +163,15 @@ public class GuestBehaviour : MonoBehaviour
 
     private void Awake()
     {
-        if (onCookingFinished == null)
-            onCookingFinished = new UnityEvent();
-        // 🟡 最初は頭上の絵文字を非表示
-        if (reactionText != null)
-            reactionText.gameObject.SetActive(false);
+       if (onCookingFinished == null)
+        onCookingFinished = new UnityEvent();
+
+    if (reactionText != null)
+        reactionText.gameObject.SetActive(false);
+
+     if (orderBubbleImage != null) orderBubbleImage.SetActive(false);
+
+    if (reactionBubbleImage != null) reactionBubbleImage.SetActive(false);
     }
 
     public void StopCooking()
@@ -178,8 +187,10 @@ public class GuestBehaviour : MonoBehaviour
 
     public void HideOrderText()
     {
-        if (reactionText != null)
-            reactionText.gameObject.SetActive(false);
+        if (reactionText != null) reactionText.gameObject.SetActive(false);
+
+    if (orderBubbleImage != null) orderBubbleImage.SetActive(false);
+    if (reactionBubbleImage != null) reactionBubbleImage.SetActive(false);
     }
     // 🍳 ====== ここまで追加 ======
     public void SetState(Status _status)
@@ -208,20 +219,27 @@ public class GuestBehaviour : MonoBehaviour
 
     public void ShowReaction(int score)
     {
-        if (reactionText == null) return;
-        string emoji = GetReactionText(score);
-        reactionText.text = emoji;
-        reactionText.gameObject.SetActive(true);
+        reactionText.text = GetReactionText(score);
+    reactionText.gameObject.SetActive(true);
 
-        CancelInvoke(nameof(HideReaction));
-        Invoke(nameof(HideReaction), 2f);
+    if (reactionBubbleImage != null) reactionBubbleImage.SetActive(true);
+    if (orderBubbleImage != null) orderBubbleImage.SetActive(false);
+
+    CancelInvoke(nameof(HideReaction));
+    Invoke(nameof(HideReaction), 2f);
     }
 
     private void HideReaction()
-    {
-        if (reactionText != null)
-            reactionText.gameObject.SetActive(false);
-    }
+  {
+    if (reactionText != null)
+        reactionText.gameObject.SetActive(false);
+
+    if (reactionBubbleImage != null)
+        reactionBubbleImage.SetActive(false);
+
+    if (orderBubbleImage != null)
+        orderBubbleImage.SetActive(false);
+}
 
     private string GetReactionText(int score)
     {
@@ -239,15 +257,12 @@ public class GuestBehaviour : MonoBehaviour
     /// </summary>
     public void ShowOrderText(string emoji = null)
     {
-        if (reactionText == null)
-        {
-            Debug.LogWarning($"ゲスト {id} にリアクションTextが設定されていません。");
-            return;
-        }
-        CancelInvoke(nameof(HideReaction)); // 🔸 以前の非表示予約をキャンセル
-        reactionText.gameObject.SetActive(true);
-        // emoji 引数があればそれを使い、なければ selectedOrderEmoji を使う
-        reactionText.text = selectedOrderText; // ← これに変更！
+         reactionText.gameObject.SetActive(true);
+
+    if (orderBubbleImage != null) orderBubbleImage.SetActive(true);
+    if (reactionBubbleImage != null) reactionBubbleImage.SetActive(false);
+
+    reactionText.text = selectedOrderText;
     }
 
     /// <summary>
