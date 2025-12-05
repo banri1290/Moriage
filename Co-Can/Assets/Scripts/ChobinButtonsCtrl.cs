@@ -88,6 +88,12 @@ public class ChobinButtonsCtrl : GameSystem
     [Tooltip("エディタ上でどのタイプのボタンを表示するか")]
     [SerializeField] private ButtonState showButtonStateInEditor = ButtonState.None;
 
+    [Header("チョビン選択画像UI")]
+    [Tooltip("チョビンボタン選択時に表示するUI画像")]
+    [SerializeField] private Image chobinSelectUIImage;
+    [Tooltip("チョビンごとに表示する画像（ボタン順に並べる）")]
+    [SerializeField] private Sprite[] chobinSelectSprites;
+
     private ChobinBehaviour[] chobins = null;
     private ChobinButton[] chobinButtons = null;
 
@@ -149,8 +155,6 @@ public class ChobinButtonsCtrl : GameSystem
 #endif
         Debug.Log("ChobinButtonsCtrlの初期化が完了しました。");
     }
-
-
 
     private void InitChobinButtonParent()
     {
@@ -243,7 +247,7 @@ public class ChobinButtonsCtrl : GameSystem
 #endif
         }
     }
-    
+
     public void HideButton(int chobinId)
     {
         if (chobinButtons == null) return;
@@ -276,7 +280,13 @@ public class ChobinButtonsCtrl : GameSystem
         ChobinButton chobinButton = chobinButtons[chobinId];
         if (chobinButton != null)
         {
-            chobinButton.Set(chobins[chobinId].transform, action);
+            // クリック時に画像も切り替える
+            UnityAction combinedAction = () =>
+            {
+                OnChobinButtonSelected(chobinId);
+                action?.Invoke();
+            };
+            chobinButton.Set(chobins[chobinId].transform, combinedAction);
             chobinButton.SetAppearance(buttonType.Sprite, buttonType.Size, buttonType.Offset);
             chobinButton.SetActive(true);
         }
@@ -288,6 +298,18 @@ public class ChobinButtonsCtrl : GameSystem
         foreach (var chobinButton in chobinButtons)
         {
             chobinButton.SetButtonDirection(angle);
+        }
+    }
+
+    /// <summary>
+    /// チョビンボタンがクリックされたときにUI画像を切り替える
+    /// </summary>
+    public void OnChobinButtonSelected(int chobinIndex)
+    {
+        if (chobinSelectUIImage == null || chobinSelectSprites == null) return;
+        if (chobinIndex >= 0 && chobinIndex < chobinSelectSprites.Length)
+        {
+            chobinSelectUIImage.sprite = chobinSelectSprites[chobinIndex];
         }
     }
 }
