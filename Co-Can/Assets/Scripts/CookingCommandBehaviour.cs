@@ -107,6 +107,11 @@ public class CookingCommandBehaviour : GameSystem
     [SerializeField] private Vector2 ButtonSize = new Vector2(100, 100);
     [Tooltip("ボタン画像のサイズ調整方法")]
     [SerializeField] private SpriteSizeOption buttonSizeOption = SpriteSizeOption.NonKeepAspect;
+    [Header("客UIの設定")]
+    [Tooltip("客の画像")]
+    [SerializeField] private Image guestImage;
+    [Tooltip("客のコメントテキスト")]
+    [SerializeField] private TextMeshProUGUI guestCommentText;
 
     // UIコンポーネントの参照
     private RectTransform[] materialUIRects;
@@ -193,6 +198,18 @@ public class CookingCommandBehaviour : GameSystem
         {
             commandUIisCorrect = false;
             Debug.LogError("コマンドUIの親オブジェクトが設定されていません。");
+        }
+
+        if(guestImage == null)
+        {
+            commandUIisCorrect = false;
+            Debug.LogError("客の画像UIが設定されていません。");
+        }
+
+        if (guestCommentText == null)
+        {
+            commandUIisCorrect = false;
+            Debug.LogError("客のコメントテキストが設定されていません。");
         }
 
         // 材料・調理法オブジェクトがnullでないか確認
@@ -681,10 +698,12 @@ public class CookingCommandBehaviour : GameSystem
         return newSize;
     }
 
-    public void ShowCommand(int chobinIndex)
+    public void ShowCommand(int chobinIndex,Sprite sprite,string guestComment)
     {
         commandCanvas.SetActive(true);
         currentChobinUIIndex = chobinIndex;
+        guestImage.sprite = sprite;
+        guestCommentText.text = guestComment;
     }
 
     public void SubmitCommand()

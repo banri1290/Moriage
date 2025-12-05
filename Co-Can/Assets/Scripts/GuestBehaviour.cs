@@ -29,7 +29,7 @@ public class GuestBehaviour : MonoBehaviour
     private bool isWaiting = false;
     private float waitTimer = 0f;
 
-      private bool isCooking = false;
+    private bool isCooking = false;
     private float cookingStartTime = 0f;
     private float cookingElapsed = 0f;
 
@@ -37,17 +37,22 @@ public class GuestBehaviour : MonoBehaviour
     public Status CurrentStatus => status;
 
     public List<string> LikedIngredients = new List<string>();    // 好きな食材
-public List<string> HatedIngredients = new List<string>();    // 嫌いな食材
-public List<string> EmotionIngredients = new List<string>();  // 感情対応食材
+    public List<string> HatedIngredients = new List<string>();    // 嫌いな食材
+    public List<string> EmotionIngredients = new List<string>();  // 感情対応食材
 
     public GuestEvent GuestEventInstance => guestEvent;
     public float WaitingTimer => waitTimer;
 
-   [Header("🟡 テキスト表示関連")]
+    [Header("🟡 テキスト表示関連")]
     [SerializeField] private TextMeshProUGUI reactionText;
-    [SerializeField] private string[]  orderTexts = { "寿司", "ラーメン", "ピザ", "サラダ", "ステーキ"};
-  private string selectedOrderText;
-    public UnityEvent OnCookingFinished;
+    [SerializeField] private string[] orderTexts = { "寿司", "ラーメン", "ピザ", "サラダ", "ステーキ" };
+    private string selectedOrderText;
+
+    private UnityEvent onCookingFinished = new();
+
+    public string OrderText => selectedOrderText;
+    public UnityEvent OnCookingFinished => onCookingFinished;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -59,24 +64,24 @@ public List<string> EmotionIngredients = new List<string>();  // 感情対応食
     {
         Move();
         if (isWaiting) CountWaitingTime();
-           if (isCooking)
-        UpdateCookingTime(); // ← ここを追加
+        if (isCooking)
+            UpdateCookingTime(); // ← ここを追加
     }
 
     public void Init(int guestId)
     {
         id = guestId;
-         StopWaiting();    
+        StopWaiting();
         isWaiting = false;
-         StopCooking(); 
+        StopCooking();
         waitTimer = 0f;
-           hasMovedFlag = false; 
+        hasMovedFlag = false;
         SetState(Status.Entering);
-          // 🍽️ 客IDに応じて絵文字を決定
-      if (orderTexts != null && orderTexts.Length > 0)
+        // 🍽️ 客IDに応じて絵文字を決定
+        if (orderTexts != null && orderTexts.Length > 0)
         {
-            int index = guestId %  orderTexts.Length;
-            selectedOrderText =  orderTexts[index];
+            int index = guestId % orderTexts.Length;
+            selectedOrderText = orderTexts[index];
         }
         else
         {
@@ -112,7 +117,7 @@ public List<string> EmotionIngredients = new List<string>();  // 感情対応食
             guestEvent.Invoke(id);
         }
     }
-    
+
     private void CountWaitingTime()
     {
         waitTimer += Time.deltaTime;
@@ -122,14 +127,14 @@ public List<string> EmotionIngredients = new List<string>();  // 感情対応食
     {
         isWaiting = true;
         waitTimer = 0f;
-              Debug.Log($"[GuestBehaviour] Guest {id} started waiting.");
+        Debug.Log($"[GuestBehaviour] Guest {id} started waiting.");
     }
-public void StopWaiting()
-{
-    isWaiting = false;
-    waitTimer = 0f; // ✅ 念のためリセット
-       Debug.Log($"[GuestBehaviour] Guest {id} stopped waiting (reset timer).");
-}
+    public void StopWaiting()
+    {
+        isWaiting = false;
+        waitTimer = 0f; // ✅ 念のためリセット
+        Debug.Log($"[GuestBehaviour] Guest {id} stopped waiting (reset timer).");
+    }
     // 🍳 ====== ここから調理時間管理部分 ======
     public void StartCooking()
     {
@@ -147,35 +152,35 @@ public void StopWaiting()
     public float GetCookingTime()
     {
         if (isCooking)
-        return Time.realtimeSinceStartup - cookingStartTime; // 調理中は現在時刻との差
-    return cookingElapsed; // 停止後は確定値
+            return Time.realtimeSinceStartup - cookingStartTime; // 調理中は現在時刻との差
+        return cookingElapsed; // 停止後は確定値
     }
 
     private void Awake()
     {
-        if (OnCookingFinished == null)
-            OnCookingFinished = new UnityEvent();
-                // 🟡 最初は頭上の絵文字を非表示
-    if (reactionText != null)
-        reactionText.gameObject.SetActive(false);
+        if (onCookingFinished == null)
+            onCookingFinished = new UnityEvent();
+        // 🟡 最初は頭上の絵文字を非表示
+        if (reactionText != null)
+            reactionText.gameObject.SetActive(false);
     }
 
     public void StopCooking()
     {
         if (isCooking)
         {
-             isCooking = false;
-        cookingElapsed = Time.realtimeSinceStartup - cookingStartTime; // ✅ 停止時点で確定
-        Debug.Log($"🍽️ Guest {id} finished cooking. Total time: {cookingElapsed:F2}秒");
-           OnCookingFinished?.Invoke(); // 完了イベント
+            isCooking = false;
+            cookingElapsed = Time.realtimeSinceStartup - cookingStartTime; // ✅ 停止時点で確定
+            Debug.Log($"🍽️ Guest {id} finished cooking. Total time: {cookingElapsed:F2}秒");
+            onCookingFinished?.Invoke(); // 完了イベント
         }
     }
 
     public void HideOrderText()
-{
-    if (reactionText != null)
-        reactionText.gameObject.SetActive(false);
-}
+    {
+        if (reactionText != null)
+            reactionText.gameObject.SetActive(false);
+    }
     // 🍳 ====== ここまで追加 ======
     public void SetState(Status _status)
     {
@@ -186,7 +191,7 @@ public void StopWaiting()
                 // 入店中の処理
                 break;
             case Status.WaitingOrder:
-            ShowOrderText(); // 🍔 注文絵文字を出す
+                ShowOrderText(); // 🍔 注文絵文字を出す
                 break;
             case Status.Ordering:
                 break;
@@ -195,14 +200,14 @@ public void StopWaiting()
                 break;
             case Status.GotDish:
                 isWaiting = false;
-                  StopCooking(); // ✅ 料理完了時に止める
+                StopCooking(); // ✅ 料理完了時に止める
                 break;
         }
     }
-        // ▼▼ ここから追記 ▼▼
+    // ▼▼ ここから追記 ▼▼
 
     public void ShowReaction(int score)
-     {
+    {
         if (reactionText == null) return;
         string emoji = GetReactionText(score);
         reactionText.text = emoji;
@@ -228,35 +233,35 @@ public void StopWaiting()
     }
     // ▲▲ ここまで追記 ▲▲
     // 🍽️ ====== 注文絵文字管理 ======
-private string selectedOrderEmoji; // この客が使う絵文字
-/// <summary>
-/// 注文開始時に頭上に絵文字を表示
-/// </summary>
-public void ShowOrderText(string emoji = null)
-{
-    if (reactionText == null)
+    private string selectedOrderEmoji; // この客が使う絵文字
+    /// <summary>
+    /// 注文開始時に頭上に絵文字を表示
+    /// </summary>
+    public void ShowOrderText(string emoji = null)
     {
-        Debug.LogWarning($"ゲスト {id} にリアクションTextが設定されていません。");
-        return;
+        if (reactionText == null)
+        {
+            Debug.LogWarning($"ゲスト {id} にリアクションTextが設定されていません。");
+            return;
+        }
+        CancelInvoke(nameof(HideReaction)); // 🔸 以前の非表示予約をキャンセル
+        reactionText.gameObject.SetActive(true);
+        // emoji 引数があればそれを使い、なければ selectedOrderEmoji を使う
+        reactionText.text = selectedOrderText; // ← これに変更！
     }
-   CancelInvoke(nameof(HideReaction)); // 🔸 以前の非表示予約をキャンセル
-    reactionText.gameObject.SetActive(true);
-      // emoji 引数があればそれを使い、なければ selectedOrderEmoji を使う
-    reactionText.text = selectedOrderText; // ← これに変更！
-}
 
-/// <summary>
-/// 料理を渡したあとにリアクション絵文字へ切り替える
-/// </summary>
-public void ShowReactionAndHideOrder(int score)
-{
-    if (reactionText == null) return;
+    /// <summary>
+    /// 料理を渡したあとにリアクション絵文字へ切り替える
+    /// </summary>
+    public void ShowReactionAndHideOrder(int score)
+    {
+        if (reactionText == null) return;
 
-    reactionText.text = GetReactionText(score);
-    reactionText.gameObject.SetActive(true);
+        reactionText.text = GetReactionText(score);
+        reactionText.gameObject.SetActive(true);
 
-    // 2秒後に非表示
-    CancelInvoke(nameof(HideReaction));
-    Invoke(nameof(HideReaction), 2f);
-}
+        // 2秒後に非表示
+        CancelInvoke(nameof(HideReaction));
+        Invoke(nameof(HideReaction), 2f);
+    }
 }

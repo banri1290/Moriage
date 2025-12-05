@@ -2,11 +2,10 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
+using UnityEngine.UIElements;
 
 public class RoundCamera : GameSystem
 {
-    enum RotateMode { Scrollbar, Buttons }
-
     public class ChangeRotateEvent : UnityEvent<float> { }
 
     [Header("UI参照")]
@@ -46,7 +45,7 @@ public class RoundCamera : GameSystem
     // Update is called once per frame
     void Update()
     {
-        MouseWheelDrag();
+        
     }
 
     private void MouseWheelDrag()
@@ -105,7 +104,7 @@ public class RoundCamera : GameSystem
         {
             scrollbar.gameObject.SetActive(scrollbarActive);
         }
-        scrollbar.onValueChanged.AddListener(RotateCamera);
+        scrollbar.onValueChanged.AddListener(RotateByScrollbar);
         SetScrollbarWithCurrentAngle();
     }
 
@@ -134,12 +133,17 @@ public class RoundCamera : GameSystem
         cam.transform.LookAt(transform.position - transform.forward * aimOffset);
     }
 
-    private void RotateCamera(float value)
+    public void RotateCamera(float angle)
+    {
+        transform.rotation = Quaternion.Euler(0, angle, 0);
+        changeRotateEvent.Invoke(angle);
+    }
+
+    private void RotateByScrollbar(float value)
     {
         float angle = (value - 0.5f) * 360.0f;
         if (invertScroll) angle *= -1;
-        transform.rotation = Quaternion.Euler(0, angle, 0);
-        changeRotateEvent.Invoke(angle);
+        RotateCamera(angle);
     }
 
     private void SetScrollbarWithCurrentAngle()

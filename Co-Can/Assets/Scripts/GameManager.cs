@@ -2,8 +2,6 @@ using UnityEngine;
 using System.Collections.Generic;
 using TMPro;
 
-
-
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -297,9 +295,13 @@ public class GameManager : MonoBehaviour
             Debug.LogError($"チョビンインデックス {chobinIndex} が範囲外です。0から{chobinSetting.Chobins.Length - 1}の範囲で指定してください。");
             return;
         }
+
+        GuestBehaviour guest = guestCtrl.GetOrderingGuest();
+        Sprite sprite = guestCtrl.GetGuestSprite();
+
         cookingCommandBehaviour.SubmitCommandEvent.RemoveAllListeners();
         cookingCommandBehaviour.SubmitCommandEvent.AddListener(() => SubmitCommand(chobinIndex));
-        cookingCommandBehaviour.ShowCommand(chobinIndex);
+        cookingCommandBehaviour.ShowCommand(chobinIndex, sprite, guest.OrderText);
         InitCommandTexts(chobinIndex);
     }
 
@@ -382,7 +384,7 @@ public class GameManager : MonoBehaviour
         GetChobin(chobinIndex).SetCommand(target);
 
         // 🍳 提供前に Guest を取得して調理開始
-        GuestBehaviour guest = guestCtrl.GetOrderGuest();
+        GuestBehaviour guest = guestCtrl.GetOrderingGuest();
         if (guest != null)
         {
             guest.OnCookingFinished.RemoveAllListeners();
@@ -454,7 +456,6 @@ public class GameManager : MonoBehaviour
         chobinManager.DecrementCookingNum();
         JudgeNeedToCook();
         chobinButtonsCtrl.HideButton(chobinIndex);
-        guestCtrl.InformCookingQuit();
     }
 
     private void JudgeNeedToCook()

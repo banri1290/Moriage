@@ -40,7 +40,6 @@ public class GuestCtrl : GameSystem
     List<GuestBehaviour> guestList = new();
 
     [Header("UI")]
-    [SerializeField] private Image guestUIImage;
     [SerializeField] private Sprite[] guestSprites;
 
     [Header("チョビンボタンUI")]
@@ -54,7 +53,6 @@ public class GuestCtrl : GameSystem
     private int guestComeCounter;
     private int guestOrderCounter;
     private int guestExitCounter;
-    private int guestHasCookedCounter;
 
     private UnityEvent hasComeGuestEvent = new();
     private UnityEvent allGuestExitEvent = new();
@@ -133,7 +131,6 @@ public class GuestCtrl : GameSystem
         guestComeCounter = 0;
         guestOrderCounter = 0;
         guestExitCounter = 0;
-        guestHasCookedCounter = 0;
         hasGuestWaitingOrder = false;
 
         UpdateWaitingOrderGuestImage();
@@ -170,7 +167,7 @@ public class GuestCtrl : GameSystem
         guestComeCounter++;
         spawnTimer = Random.Range(SpawnIntervalMin, SpawnIntervalMax);
 
-        UpdateWaitingOrderGuestImage(); // 追加
+        //UpdateWaitingOrderGuestImage(); // 追加
     }
 
     public void ReceiveOrder()
@@ -189,9 +186,8 @@ public class GuestCtrl : GameSystem
 
         hasGuestWaitingOrder = false;
         guestOrderCounter++;
-        guestHasCookedCounter++;
 
-        UpdateWaitingOrderGuestImage(); // 追加
+        //UpdateWaitingOrderGuestImage(); // 追加
            UpdateOrderTextDisplay(); // ← ここ追加
     }
 
@@ -206,7 +202,7 @@ public class GuestCtrl : GameSystem
         }
         guestExitCounter++;
 
-        UpdateWaitingOrderGuestImage(); // 追加
+        //UpdateWaitingOrderGuestImage(); // 追加
         UpdateOrderTextDisplay(); // ← 追加
     }
 
@@ -215,14 +211,9 @@ public class GuestCtrl : GameSystem
         return guestList[guestExitCounter - 1];
     }
 
-    public GuestBehaviour GetOrderGuest()
+    public GuestBehaviour GetOrderingGuest()
     {
         return guestList[guestOrderCounter];
-    }
-
-    public void InformCookingQuit()
-    {
-        guestHasCookedCounter--;
     }
 
     private void GuestOnCounter(int guestId)
@@ -280,6 +271,7 @@ public class GuestCtrl : GameSystem
     /// </summary>
     private void UpdateWaitingOrderGuestImage()
     {
+        Image guestUIImage = null;
         if (guestUIImage == null || guestSprites == null)
             return;
 
@@ -298,6 +290,13 @@ public class GuestCtrl : GameSystem
         }
         // 見つからなければ画像を消す
         guestUIImage.sprite = null;
+    }
+
+    public Sprite GetGuestSprite()
+    {
+        if(guestSprites == null || guestSprites.Length == 0)return null;
+        int prefabIndex=GetOrderingGuest().PrefabIndex;
+        return guestSprites[prefabIndex];
     }
 
     public void OnChobinButtonClicked(int index)
