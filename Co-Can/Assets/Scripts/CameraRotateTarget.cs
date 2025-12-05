@@ -30,7 +30,8 @@ public class CameraRotateTarget : MonoBehaviour
         float targetDistance = targetDirection.magnitude;
         if (targetDistance < deadzone)
         {
-            target.position = cameraPivot.position + targetDirection.normalized * deadzone;
+            return;
+            //target.position = cameraPivot.position + targetDirection.normalized * deadzone;
         }
         float cos = targetDirection.z / targetDistance;
         if (cos < -1) cos = -1; if (cos > 1) cos = 1;
