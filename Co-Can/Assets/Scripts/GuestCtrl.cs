@@ -229,6 +229,7 @@ public class GuestCtrl : GameSystem
         {
             guest.SetState(GuestBehaviour.Status.WaitingOrder);
         }
+            UpdateOrderTextDisplay(); // ← 追加！
     }
 
     private void SendGuestMessage(int guestId)
