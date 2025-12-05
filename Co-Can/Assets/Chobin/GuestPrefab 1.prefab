@@ -52,15 +52,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speed: 0
   LikedIngredients:
-  - "\u6750\u65996"
-  - "\u6750\u65997"
-  - "\u6750\u65998"
+  - "\u6750\u65992"
+  - "\u6750\u65993"
   HatedIngredients:
-  - "\u6750\u65999"
-  - "\u6750\u659910"
-  - "\u6750\u659911"
+  - "\u6750\u65990"
   EmotionIngredients:
-  - "\u6750\u659912"
+  - "\u6750\u65990"
   reactionText: {fileID: 7574645924243609843}
   orderTexts:
   - "\u30B8\u30E3\u30AC\u30A4\u30E2\u306E\u6599\u7406\u304C\u98DF\u3079\u305F\u3044"
@@ -329,7 +326,7 @@ RectTransform:
   m_GameObject: {fileID: 2594100125875196502}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.1279313, y: 0.0612962, z: 0.0612962}
+  m_LocalScale: {x: 0.1643057, y: 0.0612962, z: 0.0612962}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5614172797615950929}
@@ -725,7 +722,7 @@ RectTransform:
   m_GameObject: {fileID: 7270565595765662586}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.1279313, y: 0.0612962, z: 0.0612962}
+  m_LocalScale: {x: 0.1643057, y: 0.0612962, z: 0.0612962}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5614172797615950929}
