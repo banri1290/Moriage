@@ -32,6 +32,8 @@ public class GuestCtrl : GameSystem
     [SerializeField] private int totalGuestNum;
     [Tooltip("店内に同時に存在できる客の最大数")]
     [SerializeField] private int maxGuestNum;
+    [Header("生成する客の順番指定用リスト（3人固定など）")]
+[SerializeField] private List<GuestBehaviour> selectedGuests = new List<GuestBehaviour>();
 
     [Header("客のパラメータ設定")]
     [Tooltip("客の移動速度")]
@@ -150,25 +152,34 @@ public class GuestCtrl : GameSystem
         }
     }
 
-    private void SpawnGuest()
-    {
-        int prefabIndex = Random.Range(0, guestPrefabs.Length);
-        GuestBehaviour newGuest = Instantiate(guestPrefabs[prefabIndex], spawnSpot.position, Quaternion.identity);
-        newGuest.PrefabIndex = prefabIndex; // 追加
-        guestList.Add(newGuest);
-        newGuest.SetSpeed(speed);
-        newGuest.GuestEventInstance.RemoveAllListeners();
-        newGuest.GuestEventInstance.AddListener(SendGuestMessage);
-        newGuest.Init(guestComeCounter);
+  private void SpawnGuest()
+{
+    // 3人以上出さない
+    if (guestComeCounter >= selectedGuests.Count) return;
 
-        int differenceCount = guestComeCounter - guestOrderCounter;
-        newGuest.SetDestination(orderingSpot.position + waitingOrderOffset * differenceCount);
+    // ランダム抽選を廃止して順番に出す
+    GuestBehaviour newGuest = Instantiate(
+        selectedGuests[guestComeCounter], 
+        spawnSpot.position, 
+        Quaternion.identity
+    );
 
-        guestComeCounter++;
-        spawnTimer = Random.Range(SpawnIntervalMin, SpawnIntervalMax);
+    newGuest.PrefabIndex = guestComeCounter; // PrefabIndexを順番に
+    guestList.Add(newGuest);
 
-        //UpdateWaitingOrderGuestImage(); // 追加
-    }
+    newGuest.SetSpeed(speed);
+    newGuest.GuestEventInstance.RemoveAllListeners();
+    newGuest.GuestEventInstance.AddListener(SendGuestMessage);
+    newGuest.Init(guestComeCounter);
+
+    int differenceCount = guestComeCounter - guestOrderCounter;
+    newGuest.SetDestination(orderingSpot.position + waitingOrderOffset * differenceCount);
+
+    guestComeCounter++;
+
+    // 次の出現タイマー
+    spawnTimer = Random.Range(SpawnIntervalMin, SpawnIntervalMax);
+}
 
     public void ReceiveOrder()
     {
@@ -229,7 +240,6 @@ public class GuestCtrl : GameSystem
         {
             guest.SetState(GuestBehaviour.Status.WaitingOrder);
         }
-            UpdateOrderTextDisplay(); // ← 追加！
     }
 
     private void SendGuestMessage(int guestId)
