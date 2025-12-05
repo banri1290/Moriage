@@ -11,7 +11,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/MainScene.unity
     guid: 750b154a88c93d9469ca5dd9aabcecae
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/CopyScene20251024.unity
     guid: d75368ddc2b6eef42b85bb5bf95ff160
   m_configObjects: {}
