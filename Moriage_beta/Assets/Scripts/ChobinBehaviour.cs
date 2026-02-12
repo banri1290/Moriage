@@ -11,8 +11,6 @@ using UnityEditor;
 /// </summary>
 public class ChobinBehaviour : MonoBehaviour
 {
-    private class EventWithInt : UnityEvent<int> { }
-
     [SerializeField] private float maxSpeed = 2f;
     [SerializeField] private float accel = 5f;
     [SerializeField] private int chobinIndex;
@@ -24,8 +22,8 @@ public class ChobinBehaviour : MonoBehaviour
     private bool isMoving;
     private FlagTimer timer;
     private Transform currentTarget;
-    private EventWithInt onReachTargetEvent = new();
-    private EventWithInt onTimerCompleteEvent = new();
+    private UnityAction<int> onReachTarget;
+    private UnityAction<int> onTimerComplete;
 
     public Transform WaitingSpot => waitingSpot;
 
@@ -54,29 +52,17 @@ public class ChobinBehaviour : MonoBehaviour
     private void Update()
     {
         CheckReachedToTarget();
-        timer?.Update();
     }
 
     /// <summary>
-    /// intを引数に取るイベントにリスナーを設定
-    /// </summary>
-    /// <param name="_event">設定対象のイベント</param>
-    /// <param name="action">設定するアクション</param>
-    private void SetEventWithInt(EventWithInt _event, UnityAction<int> action)
-    {
-        _event.RemoveAllListeners();
-        _event.AddListener(action);
-    }
-
-    /// <summary>
-    /// onReachTargetEventとonTimerCompleteEventにリスナーを設定
+    /// onReachTargetとonTimerCompleteにActionを設定
     /// </summary>
     /// <param name="onReachTarget"></param>
     /// <param name="onTimerComplete"></param>
-    public void SetEvents(UnityAction<int> onReachTarget, UnityAction<int> onTimerComplete)
+    public void SetActions(UnityAction<int> _onReachTarget, UnityAction<int> _onTimerComplete)
     {
-        SetEventWithInt(onReachTargetEvent, onReachTarget);
-        SetEventWithInt(onTimerCompleteEvent, onTimerComplete);
+        onReachTarget = _onReachTarget;
+        onTimerComplete = _onTimerComplete;
     }
 
     public void SetChobinSettings(Transform _waitingSpot, float _maxSpeed, float _accel)
@@ -96,9 +82,11 @@ public class ChobinBehaviour : MonoBehaviour
     public void Init(int _chobinIndex)
     {
         chobinIndex = _chobinIndex;
-        onReachTargetEvent = new EventWithInt();
-        onTimerCompleteEvent = new EventWithInt();
         isMoving = false;
+        currentTarget = null;
+        timer = null;
+        onReachTarget = null;
+        onTimerComplete = null;
     }
 
     /// <summary>
@@ -130,7 +118,7 @@ public class ChobinBehaviour : MonoBehaviour
         if (DistanceToTarget() < 1e-3f)
         {
             isMoving = false;
-            onReachTargetEvent?.Invoke(chobinIndex);
+            onReachTarget?.Invoke(chobinIndex);
         }
     }
 
@@ -140,7 +128,7 @@ public class ChobinBehaviour : MonoBehaviour
     /// <param name="time">タイマーの時間</param>
     public void SetTimer(float time)
     {
-        timer = new FlagTimer(time);
+        timer = new FlagTimer(this,time);
         timer.SetListenerOnComplete(OnTimerComplete);
         timer.Set();
     }
@@ -150,6 +138,6 @@ public class ChobinBehaviour : MonoBehaviour
     /// </summary>
     private void OnTimerComplete()
     {
-        onTimerCompleteEvent?.Invoke(chobinIndex);
+        onTimerComplete?.Invoke(chobinIndex);
     }
 }

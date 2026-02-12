@@ -18,8 +18,8 @@ public class ChobinManager : GameSystem
     private int[] kitchenLineCount;
     private int[] chobinWaitingCount;
 
-    private UnityEvent onArrange=new();
-    
+    private UnityAction onArrange;
+
     public int ChobinIngredientIndex(int chobinIndex)
     {
         if (chobinIndex >= chobinCookings.Length)
@@ -105,8 +105,7 @@ public class ChobinManager : GameSystem
 
     public void SetOnArrangeCallback(UnityAction action)
     {
-        onArrange.RemoveAllListeners();
-        onArrange.AddListener(action);
+        onArrange = action;
     }
 
     public void SetChobinIngredient(int chobinIndex, int ingredientIndex)
@@ -197,7 +196,7 @@ public class ChobinManager : GameSystem
     {
         ChobinCooking chobinCooking = chobinCookings[chobinIndex];
         ChobinBehaviour chobinBehaviour = chobinBehaviours[chobinIndex];
-        chobinBehaviour.SetEvents(OnChobinReachTarget, OnChobinCookingComplete);
+        chobinBehaviour.SetActions(OnChobinReachTarget, OnChobinCookingComplete);
         chobinCooking.StartCooking();
         ChobinGoToNextKitchenLine(chobinIndex);
         currentCookingChobinCount++;

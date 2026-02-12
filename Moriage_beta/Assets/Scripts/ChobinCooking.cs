@@ -1,5 +1,6 @@
 using UnityEngine;
 
+[RequireComponent(typeof(ChobinBehaviour))]
 /// <summary>
 /// チョビンが料理を行うための状態管理クラス
 /// </summary>

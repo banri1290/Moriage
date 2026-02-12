@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -6,25 +7,25 @@ using UnityEngine.Events;
 /// </summary>
 public class FlagTimer
 {
-    private class EventWithFloat : UnityEvent<float> { }
-
+    private MonoBehaviour parent;
     private float duration = 2f;
     public bool flag { get; private set; }
     public float time { get; private set; }
-    private UnityEvent onComplete;
-    private EventWithFloat onUpdate;
+    private UnityAction onComplete;
+    private UnityAction<float> onUpdate;
 
     /// <summary>
     /// コンストラクタ
     /// </summary>
     /// <param name="_duration">タイマーの時間</param>
-    public FlagTimer(float _duration)
+    public FlagTimer(MonoBehaviour _parent, float _duration)
     {
+        parent = _parent;
         duration = _duration;
         flag = false;
         time = 0f;
-        onComplete = new UnityEvent();
-        onUpdate = new EventWithFloat();
+        onComplete = null;
+        onUpdate = null;
     }
 
     /// <summary>
@@ -33,8 +34,7 @@ public class FlagTimer
     /// <param name="action">完了時に実行するアクション</param>
     public void SetListenerOnComplete(UnityAction action)
     {
-        onComplete.RemoveAllListeners();
-        onComplete.AddListener(action);
+        onComplete = action;
     }
 
     /// <summary>
@@ -43,8 +43,7 @@ public class FlagTimer
     /// <param name="action">更新時に実行するアクション</param>
     public void SetListenerOnUpdate(UnityAction<float> action)
     {
-        onUpdate.RemoveAllListeners();
-        onUpdate.AddListener(action);
+        onUpdate = action;
     }
 
     /// <summary>
@@ -52,25 +51,25 @@ public class FlagTimer
     /// </summary>
     public void Set()
     {
-        flag = true;
-        time = 0f;
+        parent.StartCoroutine(Update());
     }
 
     /// <summary>
     /// タイマーを更新
     /// </summary>
-    public void Update()
+    private IEnumerator Update()
     {
-        if (flag)
+        flag = true;
+        time = 0f;
+        while (flag && time < duration)
         {
+            float raito = time / duration;
+            onUpdate?.Invoke(raito);
+            yield return null;
             time += Time.deltaTime;
-            onUpdate?.Invoke(time/duration);
-            if (time >= duration)
-            {
-                flag = false;
-                time = 0f;
-                onComplete?.Invoke();
-            }
         }
+        onUpdate?.Invoke(1f);
+        flag = false;
+        onComplete?.Invoke();
     }
 }

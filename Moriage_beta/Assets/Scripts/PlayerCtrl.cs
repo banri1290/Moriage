@@ -1,9 +1,13 @@
 using UnityEngine;
+using UnityEngine.Events;
 
 public class PlayerCtrl : MonoBehaviour
 {
     [SerializeField] private float maxSpeed;
     [SerializeField] private float accel;
+    [SerializeField] private UnityEvent onMoving;
+    [SerializeField] private UnityEvent onStartedMoving;
+    [SerializeField] private UnityEvent onStopped;
 
     private float speed;
     private bool isMoving;
@@ -30,6 +34,7 @@ public class PlayerCtrl : MonoBehaviour
             {
                 speed = maxSpeed;
             }
+            onMoving?.Invoke();
         }
         else
         {
@@ -45,5 +50,7 @@ public class PlayerCtrl : MonoBehaviour
     public void SetMoving(bool _isMoving)
     {
         isMoving = _isMoving;
+        if(isMoving)onStartedMoving?.Invoke();
+        else onStopped?.Invoke();
     }
 }

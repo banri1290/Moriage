@@ -17,8 +17,6 @@ public class GameManager : MonoBehaviour
     [SerializeField] private CookingMethodManager cookingMethodManager;
     [SerializeField] private ChobinsSetting chobinsSetting;
     [SerializeField] private ChobinManager chobinManager;
-    [SerializeField] private CommandUiSetting commandUiSetting;
-    [SerializeField] private CommandUiManager commandUiManager;
     [SerializeField] private DishMaker dishMaker;
 
     /// <summary>
@@ -40,10 +38,6 @@ public class GameManager : MonoBehaviour
         {
             chobinsSetting.SetChobinManager(chobinManager);
         }
-        if (commandUiSetting != null && commandUiManager != null)
-        {
-            commandUiSetting.SetCommandUiManager(commandUiManager);
-        }
 
         List<bool> settingsAreCorrect = new List<bool>
         {
@@ -51,8 +45,6 @@ public class GameManager : MonoBehaviour
             CheckSettingsOfGameSystem(cookingMethodManager,"調理法"),
             CheckSettingsOfGameSystem(chobinsSetting,"チョビン"),
             CheckSettingsOfGameSystem(chobinManager,"チョビンマネージャー"),
-            CheckSettingsOfGameSystem(commandUiSetting,"指示UI"),
-            CheckSettingsOfGameSystem(commandUiManager,"指示UIマネージャー"),
             CheckSettingsOfGameSystem(dishMaker,"料理作成システム"),
         };
 
@@ -94,7 +86,6 @@ public class GameManager : MonoBehaviour
     {
         InitCookingMethod();
         InitChobins();
-        InitCookingCommandUI();
         Debug.Log("All settings are correct.");
     }
 
@@ -116,118 +107,6 @@ public class GameManager : MonoBehaviour
             cookingMethodManager.GetCookingTime()
             );
         chobinManager.SetOnArrangeCallback(AddIngredientToDish);
-    }
-
-    /// <summary>
-    /// 指示UIの初期化
-    /// </summary>
-    private void InitCookingCommandUI()
-    {
-        commandUiSetting.Init(
-            chobinsSetting.CookingMethodLength,
-            chobinsSetting.ChobinIcons,
-            ingredientsManager.IngredientIcons,
-            cookingMethodManager.GetMethodIcons()
-            );
-#if UNITY_EDITOR
-        if (!EditorApplication.isPlayingOrWillChangePlaymode) return;
-#endif
-        commandUiManager.SetButtonEvents(
-            SelectPreviousChobin,
-            SelectNextChobin,
-            SelectPreviousIngredient,
-            SelectNextIngredient,
-            SelectPreviousMethod,
-            SelectNextMethod
-            );
-        SetCommandUi(0);
-    }
-
-    /// <summary>
-    /// 前のチョビンを選択する
-    /// </summary>
-    private void SelectPreviousChobin()
-    {
-        int nowChobinLength = commandUiManager.CurrentChobinIndex;
-        int chobinIndex = (nowChobinLength - 1 + chobinsSetting.ChobinLength) % chobinsSetting.ChobinLength;
-        SetCommandUi(chobinIndex);
-    }
-
-    /// <summary>
-    /// 次のチョビンを選択する
-    /// </summary>
-    private void SelectNextChobin()
-    {
-        int nowChobinLength = commandUiManager.CurrentChobinIndex;
-        int chobinIndex = (nowChobinLength + 1) % chobinsSetting.ChobinLength;
-        SetCommandUi(chobinIndex);
-    }
-
-    private void SelectPreviousIngredient()
-    {
-        int chobinIndex = commandUiManager.CurrentChobinIndex;
-        int nowIngredientIndex = chobinManager.ChobinIngredientIndex(chobinIndex);
-        int ingredientIndex = (nowIngredientIndex - 1 + ingredientsManager.IngredientLength) % ingredientsManager.IngredientLength;
-        chobinManager.SetChobinIngredient(chobinIndex, ingredientIndex);
-        commandUiManager.SetIngredientUiIcon(ingredientIndex, chobinManager.ChobinIngredientIndex(chobinIndex));
-    }
-
-    private void SelectNextIngredient()
-    {
-        int chobinIndex = commandUiManager.CurrentChobinIndex;
-        int nowIngredientIndex = chobinManager.ChobinIngredientIndex(chobinIndex);
-        int ingredientIndex = (nowIngredientIndex + 1) % ingredientsManager.IngredientLength;
-        chobinManager.SetChobinIngredient(chobinIndex, ingredientIndex);
-        commandUiManager.SetIngredientUiIcon(ingredientIndex, chobinManager.ChobinIngredientIndex(chobinIndex));
-    }
-
-    /// <summary>
-    /// チョビンの調理法を前のものに設定する
-    /// </summary>
-    /// <param name="chobinMethodIndex">調理工程のインデックス</param>
-    private void SelectPreviousMethod(int chobinMethodIndex)
-    {
-        int chobinIndex = commandUiManager.CurrentChobinIndex;
-        int nowMethodIndex = chobinManager.ChobinMethodIndex(chobinIndex, chobinMethodIndex);
-        int methodIndex = (nowMethodIndex - 1 + cookingMethodManager.CookingMethodLength) % cookingMethodManager.CookingMethodLength;
-        chobinManager.SetChobinMethod(chobinIndex, chobinMethodIndex, methodIndex);
-        commandUiManager.SetMethodUiIcon(chobinMethodIndex, chobinManager.ChobinMethodIndex(chobinIndex, chobinMethodIndex));
-    }
-
-    /// <summary>
-    /// チョビンの調理法を次のものに設定する
-    /// </summary>
-    /// <param name="chobinMethodIndex">調理工程のインデックス</param>
-    private void SelectNextMethod(int chobinMethodIndex)
-    {
-        int chobinIndex = commandUiManager.CurrentChobinIndex;
-        int nowMethodIndex = chobinManager.ChobinMethodIndex(chobinIndex, chobinMethodIndex);
-        int methodIndex = (nowMethodIndex + 1) % cookingMethodManager.CookingMethodLength;
-        chobinManager.SetChobinMethod(chobinIndex, chobinMethodIndex, methodIndex);
-        commandUiManager.SetMethodUiIcon(chobinMethodIndex, chobinManager.ChobinMethodIndex(chobinIndex, chobinMethodIndex));
-    }
-
-    /// <summary>
-    /// 現在選択されているチョビンの調理法をUIに反映する
-    /// </summary>
-    private void SetCommandUi(int chobinIndex)
-    {
-        commandUiManager.SetChobinIndex(chobinIndex);
-        commandUiManager.SetIngredientUiIcon(
-            chobinIndex, chobinManager.ChobinIngredientIndex(chobinIndex)
-            );
-        for (int i = 0; i < chobinsSetting.CookingMethodLength; i++)
-        {
-            int chobinMethodIndex = chobinManager.ChobinMethodIndex(chobinIndex, i);
-            commandUiManager.SetMethodUiIcon(i, chobinMethodIndex);
-        }
-    }
-
-    public void StartCooking()
-    {
-        commandUiManager.HideUi();
-        dishMaker.StartMakingDish(chobinsSetting.CookingMethodLength);
-        chobinManager.StartAllCooking();
     }
 
     private void AddIngredientToDish()

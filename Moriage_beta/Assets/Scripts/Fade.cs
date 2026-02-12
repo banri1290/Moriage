@@ -39,15 +39,9 @@ public class Fade : MonoBehaviour
             Debug.LogError("Fade: No Image component found for fading.");
             return;
         }
-        fadeTimer = new FlagTimer(timeToFade);
+        fadeTimer = new FlagTimer(this,timeToFade);
         fadeTimer.SetListenerOnUpdate(SetColor);
         SetFadeState(fadeStateOnAwake);
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        fadeTimer.Update();
     }
 
     public void FadeOut()
